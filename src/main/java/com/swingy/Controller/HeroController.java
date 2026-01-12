@@ -1,54 +1,46 @@
-package src.main.java.com.swingy.Controller;
-import src.main.java.com.swingy.Model.Hero;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Random;
+package com.swingy.Controller;
+import com.swingy.Model.Hero;
+import com.swingy.View.HeroView;
 
 public class HeroController {
-	private Hero hero;
-	private static final Map<Integer, Integer> XP_THRESHOLD = Map.of(
-		1, 1000,
-		2, 2450,
-		3, 4800,
-		4, 8050, 
-		5, 12000
-	);
+	public static final String ANSI_RESET = "\u001B[0m";
+	public static final String ANSI_BLACK = "\u001B[30m";
+	public static final String ANSI_RED = "\u001B[31m";
+	public static final String ANSI_GREEN = "\u001B[32m";
+	public static final String ANSI_YELLOW = "\u001B[33m";
+	public static final String ANSI_BLUE = "\u001B[34m";
+	public static final String ANSI_PURPLE = "\u001B[35m";
+	public static final String ANSI_CYAN = "\u001B[36m";
+	public static final String ANSI_WHITE = "\u001B[37m";
 
-	public HeroController(Hero hero) {
+	private final Hero hero;
+	private final HeroView heroView;
+
+	public HeroController(Hero hero, HeroView heroView) {
 		this.hero = hero;
+		this.heroView = heroView;
 	}
 
-	public void levelUp() {
-		int experience = hero.getExperience();
-		int level = hero.getLevel();
 
-		if (experience < XP_THRESHOLD.get(level)) {
-			return;
-		}
-
-		experience -= XP_THRESHOLD.get(level);
-		level++;
-		
-		hero.setLevel(level);
-		hero.setExperience(experience);
+	public void displayHeroStats() {
+		heroView.displayHeroStats(hero);
 	}
 
-	public void run() {
-		Random random = new Random();
-		boolean isEscape = random.nextBoolean();
-		if (isEscape) {
-			System.out.println("Hero escaped!");
-		} else {
-			System.out.println("Hero was caught!");
-		}
+	public Hero createNewHero(String name, String heroClass) {
+		Hero newHero = new Hero.HeroBuilder()
+			.setHeroName(name)
+			.setHeroClass(heroClass)
+			.build();
+		heroView.displayHeroCreated(newHero);
+		return newHero;
 	}
 
-	public void attack() {
-		
+	public void selectHero() {
+		heroView.displayHeroSelected(hero);
 	}
-	
-	public void won() {
 
+	public Hero getHero() {
+		return hero;
 	}
 }
 

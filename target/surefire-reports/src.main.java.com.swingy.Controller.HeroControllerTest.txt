@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: src.main.java.com.swingy.Controller.HeroControllerTest
--------------------------------------------------------------------------------
-Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.107 s -- in src.main.java.com.swingy.Controller.HeroControllerTest

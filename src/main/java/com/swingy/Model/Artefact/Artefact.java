@@ -1,4 +1,4 @@
-package src.main.java.com.swingy.Model.Artefact;
+package com.swingy.Model.Artefact;
 
 public abstract class Artefact {
 	String artefactName;

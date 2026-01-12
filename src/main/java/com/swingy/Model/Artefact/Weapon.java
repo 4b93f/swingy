@@ -1,7 +1,7 @@
-package src.main.java.com.swingy.Model.Artefact;
+package com.swingy.Model.Artefact;
 
 public class Weapon extends Artefact {
-	Weapon(String artefactName, int bonusAttack, int bonusDefense, int bonusHitPoints) {
-		super(artefactName, bonusAttack, bonusDefense, bonusHitPoints);
+	public Weapon(String artefactName, int bonusAttack) {
+		super(artefactName, bonusAttack, 0, 0);
 	}
 }

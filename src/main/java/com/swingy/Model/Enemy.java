@@ -1,4 +1,4 @@
-package src.main.java.com.swingy.Model;
+package com.swingy.Model;
 
 public class Enemy {
 	private String name;
@@ -71,6 +71,18 @@ public class Enemy {
 			return new Enemy(this);
 		}
 	}
+
+	public String getName() { return name; }
+
+	public int getHitPoints() { return hitPoints; }
+
+	public int getAttack() { return attack; }
+
+	public int getDefense() { return defense; }
+
+	public int getLevel() { return level; }
+
+	public int getStrength() { return strength; }
 
 	@Override
 	public String toString() {
