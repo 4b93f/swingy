@@ -6,31 +6,17 @@ public class Equipement {
 	private Artefact armor;
 	private Artefact helmet;
 
-	public Artefact getWeapon() {
-		return weapon;
-	}
+	public Artefact getWeapon() { return weapon; }
 
-	public void setWeapon(Artefact weapon) {
-		this.weapon = weapon;
-	}
+	public void setWeapon(Artefact weapon) { this.weapon = weapon; }
 
-	public Artefact getArmor() {
-		return armor;
-	}
+	public Artefact getArmor() { return armor; }
 
-	public void setArmor(Artefact armor) {
-		this.armor = armor;
-	}
+	public void setArmor(Artefact armor) { this.armor = armor; }
 
-	public Artefact getHelmet() {
-		return helmet;
-	}
+	public Artefact getHelmet() { return helmet; }
 
-	public void setHelmet(Artefact helmet) {
-		this.helmet = helmet;
-	}
+	public void setHelmet(Artefact helmet) { this.helmet = helmet; }
 
-	public String toString() {
-		return "Equipement [weapon=" + weapon + ", armor=" + armor + ", helmet=" + helmet + "]";
-	}
+	public String toString() { return "Equipement [weapon=" + weapon + ", armor=" + armor + ", helmet=" + helmet + "]"; }
 }

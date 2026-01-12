@@ -22,9 +22,7 @@ public class HeroController {
 	}
 
 
-	public void displayHeroStats() {
-		heroView.displayHeroStats(hero);
-	}
+	public void displayHeroStats() { heroView.displayHeroStats(hero); }
 
 	public Hero createNewHero(String name, String heroClass) {
 		Hero newHero = new Hero.HeroBuilder()
@@ -35,12 +33,8 @@ public class HeroController {
 		return newHero;
 	}
 
-	public void selectHero() {
-		heroView.displayHeroSelected(hero);
-	}
-
-	public Hero getHero() {
-		return hero;
-	}
+	public void selectHero() { heroView.displayHeroSelected(hero); }
+	
+	public Hero getHero() { return hero; }
 }
 

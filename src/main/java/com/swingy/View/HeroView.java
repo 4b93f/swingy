@@ -11,13 +11,9 @@ public class HeroView {
 	public static final String ANSI_CYAN = "\u001B[36m";
 	public static final String ANSI_WHITE = "\u001B[37m";
 
-	public void displayHeroLevelUp(int newLevel) {
-		System.out.println(ANSI_GREEN + "Hero leveled up to level " + newLevel + "!" + ANSI_RESET);
-	}
+	public void displayHeroLevelUp(int newLevel) { System.out.println(ANSI_GREEN + "Hero leveled up to level " + newLevel + "!" + ANSI_RESET); }
 
-	public void displayHeroGainedXp(int xpGained) {
-		System.out.println(ANSI_GREEN + "Hero gained " + xpGained + " XP!" + ANSI_RESET);
-	}
+	public void displayHeroGainedXp(int xpGained) { System.out.println(ANSI_GREEN + "Hero gained " + xpGained + " XP!" + ANSI_RESET); }
 
 	public void displayHeroStats(com.swingy.Model.Hero hero) {
 		System.out.println(ANSI_CYAN + "========== Hero Stats ==========" + ANSI_RESET);
@@ -37,8 +33,6 @@ public class HeroView {
 		System.out.println(ANSI_YELLOW + "Class: " + hero.getHeroClass() + ANSI_RESET);
 	}
 
-	public void displayHeroSelected(com.swingy.Model.Hero hero) {
-		System.out.println(ANSI_GREEN + "Selected hero: " + hero.getHeroName() + " (" + hero.getHeroClass() + ")" + ANSI_RESET);
-	}
+	public void displayHeroSelected(com.swingy.Model.Hero hero) { System.out.println(ANSI_GREEN + "Selected hero: " + hero.getHeroName() + " (" + hero.getHeroClass() + ")" + ANSI_RESET); }
 
 }

@@ -27,10 +27,8 @@ public class Enemy {
 
 		public EnemyBuilder() {}
 
-		public EnemyBuilder(String name) {
-			this.name = name;
-		}
-
+		public EnemyBuilder(String name) { this.name = name; }
+		
 		public EnemyBuilder generateName() {
 			this.name = "Enemy" + (int)(Math.random() * 100);
 			return this;

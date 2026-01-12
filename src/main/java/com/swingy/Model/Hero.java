@@ -35,47 +35,23 @@ public class Hero {
 
 		public HeroBuilder() {}
 
-		public HeroBuilder(String heroName) {
-			this.heroName = heroName;
-		}
+		public HeroBuilder(String heroName) { this.heroName = heroName; }
 
-		public HeroBuilder setHeroName(String heroName) {
-			this.heroName = heroName;
-			return this;
-		}
+		public HeroBuilder setHeroName(String heroName) { this.heroName = heroName; return this; }
 
-		public HeroBuilder setHeroClass(String heroClass) {
-			this.heroClass = heroClass;
-			return this;
-		}
+		public HeroBuilder setHeroClass(String heroClass) { this.heroClass = heroClass; return this; }
 
-		public HeroBuilder setLevel(int level) {
-			this.level = level;
-			return this;
-		}
+		public HeroBuilder setLevel(int level) { this.level = level; return this; }
 
-		public HeroBuilder setExperience(int experience) {
-			this.experience = experience;
-			return this;
-		}
+		public HeroBuilder setExperience(int experience) { this.experience = experience; return this; }
 
-		public HeroBuilder setHitPoints(int hitPoints) {
-			this.hitPoints = hitPoints;
-			return this;
-		}
+		public HeroBuilder setHitPoints(int hitPoints) { this.hitPoints = hitPoints; return this; }
 
-		public HeroBuilder setAttack(int attack) {
-			this.attack = attack;
-			return this;
-		}
+		public HeroBuilder setAttack(int attack) { this.attack = attack; return this; }
 
-		public HeroBuilder setDefense(int defense) {
-			this.defense = defense;
-			return this;
-		}
+		public HeroBuilder setDefense(int defense) { this.defense = defense; return this; }
 
 		public Hero build() {
-			// Calculate stats based on level if not explicitly set
 			if (hitPoints == 100) {
 				hitPoints = calculateBaseHitPoints(level, heroClass);
 			}
@@ -89,16 +65,16 @@ public class Hero {
 		}
 
 		private int calculateBaseHitPoints(int level, String heroClass) {
-			int baseHP = 80 + (level * 20); // 100 at level 1, 120 at level 2, etc.
+			int baseHP = 80 + (level * 20);
 			return switch (heroClass.toLowerCase()) {
-				case "tank" -> (int)(baseHP * 1.2);     // Tanks get more base HP
-				case "rogue" -> (int)(baseHP * 0.9);    // Rogues get less base HP
+				case "tank" -> (int)(baseHP * 1.2);
+				case "rogue" -> (int)(baseHP * 0.9);
 				default -> baseHP;
 			};
 		}
 
 		private int calculateBaseAttack(int level, String heroClass) {
-			int baseAtk = 8 + (level * 3); // 11 at level 1, 14 at level 2, etc.
+			int baseAtk = 8 + (level * 3);
 			return switch (heroClass.toLowerCase()) {
 				case "warrior" -> (int)(baseAtk * 1.1);
 				case "rogue" -> (int)(baseAtk * 1.2);
@@ -109,7 +85,7 @@ public class Hero {
 		}
 
 		private int calculateBaseDefense(int level, String heroClass) {
-			int baseDef = 6 + (level * 2); // 8 at level 1, 10 at level 2, etc.
+			int baseDef = 6 + (level * 2);
 			return switch (heroClass.toLowerCase()) {
 				case "tank" -> (int)(baseDef * 1.3);
 				case "warrior" -> (int)(baseDef * 1.1);
@@ -120,57 +96,31 @@ public class Hero {
 		}
 	}
 
-	public String getHeroName() {
-		return heroName;
-	}
+	public String getHeroName() { return heroName; }
 
-	public String getHeroClass() {
-		return heroClass;
-	}
+	public String getHeroClass() { return heroClass; }
 
-	public int getLevel() {
-		return level;
-	}
+	public int getLevel() { return level; }
 
-	public void setLevel(int level) {
-		this.level = level;
-	}
+	public void setLevel(int level) { this.level = level; }
 
-	public int getExperience() {
-		return experience;
-	}
+	public int getExperience() { return experience; }
 
-	public void setExperience(int experience) {
-		this.experience = experience;
-	}
+	public void setExperience(int experience) { this.experience = experience; }
 
-	public int getHitPoints() {
-		return hitPoints;
-	}
+	public int getHitPoints() { return hitPoints; }
 
-	public void setHitPoints(int hitPoints) {
-		this.hitPoints = hitPoints;
-	}
+	public void setHitPoints(int hitPoints) { this.hitPoints = hitPoints; }
 
-	public int getAttack() {
-		return attack;
-	}
+	public int getAttack() { return attack; }
 
-	public void setAttack(int attack) {
-		this.attack = attack;
-	}
+	public void setAttack(int attack) { this.attack = attack; }
 
-	public int getDefense() {
-		return defense;
-	}
+	public int getDefense() { return defense; }
 
-	public void setDefense(int defense) {
-		this.defense = defense;
-	}
+	public void setDefense(int defense) { this.defense = defense; }
 
-	public Equipement getEquipement() {
-		return equipement;
-	}
+	public Equipement getEquipement() { return equipement; }
 
 	public boolean fightEnemy(Enemy enemy) {
 		int heroHP = getTotalHitPoints();
@@ -251,14 +201,9 @@ public class Hero {
 		return xpGained;
 	}
 
-	public boolean shouldLevelUp() {
-		int xpThreshold = getXPThreshold(this.level);
-		return this.experience >= xpThreshold;
-	}
+	public boolean shouldLevelUp() { return this.experience >= getXPThreshold(this.level); }
 
-	private int getXPThreshold(int level) {
-		return level * 1000 + (level - 1) * (level - 1) * 450;
-	}
+	private int getXPThreshold(int level) { return level * 1000 + (level - 1) * (level - 1) * 450; }
 
 	public void levelUp() {
 		this.experience -= getXPThreshold(this.level);
