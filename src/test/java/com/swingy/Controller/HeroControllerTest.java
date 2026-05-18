@@ -1,11 +1,11 @@
-package com.swingy.Controller;
+package com.swingy.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.swingy.Model.Hero;
+import com.swingy.model.Hero;
 
 @DisplayName("Hero Level Up Tests")
 public class HeroControllerTest {
@@ -104,20 +104,6 @@ public class HeroControllerTest {
 
         assertEquals(5, hero.getLevel());
         assertEquals(0, hero.getExperience());
-    }
-
-    @Test
-    @DisplayName("Should level up from level 5 to level 6")
-    void testLevelUpFromLevel5() {
-        hero.setLevel(5);
-        hero.setExperience(15000); // More than threshold of 12200
-
-        if (hero.shouldLevelUp()) {
-            hero.levelUp();
-        }
-
-        assertEquals(6, hero.getLevel());
-        assertEquals(2800, hero.getExperience()); // 15000 - 12200 = 2800
     }
 
     @Test

@@ -1,9 +1,8 @@
-// Model/ArtefactGenerator.java
-package com.swingy.Model.Artefact;
+package com.swingy.model.artefact;
 
 import java.util.Random;
 
-import com.swingy.Model.Enemy;
+import com.swingy.model.Enemy;
 
 public class ArtefactGenerator {
     private static final Random random = new Random();

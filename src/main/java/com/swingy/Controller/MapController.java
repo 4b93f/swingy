@@ -1,105 +1,182 @@
-package com.swingy.Controller;
+package com.swingy.controller;
 
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
+import java.io.IOException;
+import java.util.Scanner;
 
-import com.swingy.Model.GameState;
-import com.swingy.View.MapView;
+import com.swingy.model.Enemy;
+import com.swingy.model.GamePhase;
+import com.swingy.model.GameState;
+import com.swingy.model.BattleResult;
+import com.swingy.model.artefact.Artefact;
+import com.swingy.model.artefact.ArtefactGenerator;
+import com.swingy.view.MapView;
 
 public class MapController {
     private final GameState gameState;
-    private final MapView mapView;
-    private Terminal terminal;
+    private final MapView   mapView;
+    private final Scanner   scanner;
+    private int prevX, prevY;
 
-    public MapController(GameState gameState, MapView mapView) {
+    private boolean rawMode = false;
+
+    public MapController(GameState gameState, MapView mapView, Scanner scanner) {
         this.gameState = gameState;
-        this.mapView = mapView;
+        this.mapView   = mapView;
+        this.scanner   = scanner;
         try {
-            this.terminal = TerminalBuilder.builder()
-                .system(true)
-                .build();
-            terminal.enterRawMode();
+            Process p = new ProcessBuilder("sh", "-c", "stty -icanon -echo min 1 < /dev/tty")
+                .start();
+            rawMode = (p.waitFor() == 0);
         } catch (Exception e) {
-            System.err.println("Failed to initialize terminal: " + e.getMessage());
+            rawMode = false;
         }
+    }
+
+    private char readKey() {
+        if (rawMode) {
+            try {
+                char c;
+                do { c = Character.toLowerCase((char) System.in.read()); }
+                while (c == '\r' || c == '\n');
+                return c;
+            } catch (IOException e) {}
+        }
+        String line = scanner.nextLine().trim().toLowerCase();
+        return line.isEmpty() ? ' ' : line.charAt(0);
+    }
+
+    private void waitForKey() {
+        System.out.print("\n  [any key] continue...");
+        readKey();
+    }
+
+    private void restoreTerminal() {
+        if (!rawMode) return;
+        try {
+            new ProcessBuilder("sh", "-c", "stty sane < /dev/tty").start().waitFor();
+        } catch (Exception ignored) {}
+        rawMode = false;
     }
 
     public void startExploration() {
         boolean running = true;
-        
-        while (running) {
-            mapView.displayMap(gameState);
-            
-            try {
-                int key = terminal.reader().read();
-                char input = (char) key;
-                
-                switch (Character.toLowerCase(input)) {
-                    case 'w':
-                        moveHero(0, -1);
-                        break;
-                    case 's':
-                        moveHero(0, 1);
-                        break;
-                    case 'a':
-                        moveHero(-1, 0);
-                        break;
-                    case 'd':
-                        moveHero(1, 0);
-                        break;
-                    case 'm':
-                        showFullMap();
-                        break;
-                    case 'q':
-                        running = false;
-                        System.out.println("Thanks for playing!");
-                        break;
+        try {
+            while (running) {
+                if (gameState.getCurrentPhase() == GamePhase.GAME_OVER) {
+                    mapView.displayGameOver(gameState);
+                    running = false;
+                    continue;
                 }
-                
-                if (gameState.isAtBorder()) {
+
+                if (gameState.getCurrentPhase() == GamePhase.VICTORY) {
                     mapView.displayVictory(gameState);
                     running = false;
+                    continue;
                 }
-            } catch (Exception e) {
-                System.err.println("Error reading input: " + e.getMessage());
-                running = false;
+
+                mapView.displayMap(gameState);
+
+                char key = readKey();
+                switch (key) {
+                    case 'w': moveHero(0, -1);  break;
+                    case 's': moveHero(0, 1);   break;
+                    case 'a': moveHero(-1, 0);  break;
+                    case 'd': moveHero(1, 0);   break;
+                    case 'm':
+                        mapView.displayFullMap(gameState);
+                        waitForKey();
+                        break;
+                    case 'q': running = false;  break;
+                }
+
+                if (gameState.isAtBorder())
+                    gameState.setCurrentPhase(GamePhase.VICTORY);
             }
+        } finally {
+            restoreTerminal();
         }
-        
-        cleanup();
     }
 
     private void moveHero(int dx, int dy) {
-        if (gameState.isValidMove(dx, dy)) {
-            gameState.getPosition().move(dx, dy);
-        } else {
+        if (!gameState.isValidMove(dx, dy)) {
             mapView.displayInvalidMove();
-            waitForKey();
+            return;
+        }
+
+        prevX = gameState.getPosition().getX();
+        prevY = gameState.getPosition().getY();
+        gameState.getPosition().move(dx, dy);
+
+        Enemy enemy = gameState.getEnemyAt(
+            gameState.getPosition().getX(),
+            gameState.getPosition().getY()
+        );
+
+        if (enemy != null) {
+            gameState.setCurrentPhase(GamePhase.BATTLE);
+            handleBattle(enemy);
         }
     }
 
-    private void showFullMap() {
-        mapView.displayFullMap(gameState);
-        try {
-            terminal.reader().read();
-        } catch (Exception e) {
-        }
-    }
+    private void handleBattle(Enemy enemy) {
+        mapView.displayBattleStart(gameState.getHero(), enemy);
 
-    private void waitForKey() {
-        System.out.print("  Press any key to continue...");
-        try {
-            terminal.reader().read();
-        } catch (Exception e) {
-        }
-    }
+        char choice;
+        do {
+            mapView.displayBattleOptions();
+            choice = readKey();
+        } while (choice != 'f' && choice != 'r');
 
-    private void cleanup() {
-        try {
-            if (terminal != null) {
-                terminal.close();
+        if (choice == 'f') {
+            executeBattle(enemy);
+        } else if (choice == 'r') {
+            if (Math.random() < 0.5) {
+                gameState.getPosition().setX(prevX);
+                gameState.getPosition().setY(prevY);
+                mapView.displayRunSuccess();
+                gameState.setCurrentPhase(GamePhase.EXPLORATION);
+            } else {
+                mapView.displayRunFailure();
+                mapView.displayForcedToFight();
+                executeBattle(enemy);
             }
-        } catch (Exception e) {
+        }
+    }
+
+    private void executeBattle(Enemy enemy) {
+        BattleResult result = gameState.getHero().fightEnemyDetailed(enemy);
+
+        for (BattleResult.BattleTurn turn : result.getTurns()) {
+            mapView.displayBattleTurn(turn.getAttacker(), turn.getDefender(),
+                turn.getDamage(), turn.isCritical(), turn.getDefenderHPRemaining());
+        }
+
+        if (result.isHeroWon()) {
+            int xpGained = gameState.getHero().gainXpFromEnemy(enemy);
+            boolean leveled = false;
+            if (gameState.getHero().shouldLevelUp()) {
+                gameState.getHero().levelUp();
+                leveled = true;
+            }
+            mapView.displayBattleVictory(gameState.getHero(), enemy, xpGained, leveled);
+
+            if (Math.random() < 0.3) {
+                Artefact artifact = ArtefactGenerator.generate(enemy);
+                if (artifact != null) {
+                    mapView.displayArtifactFound(artifact);
+                    char pick = readKey();
+                    if (pick == 'k')
+                        gameState.getHero().equipArtifact(artifact);
+                }
+            }
+
+            gameState.removeEnemy(enemy);
+            gameState.setCurrentPhase(GamePhase.EXPLORATION);
+            waitForKey();
+        } else {
+            mapView.displayBattleDefeat();
+            waitForKey();
+            gameState.setCurrentPhase(GamePhase.GAME_OVER);
         }
     }
 

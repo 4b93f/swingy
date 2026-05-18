@@ -1,4 +1,4 @@
-package com.swingy.Model;
+package com.swingy.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -29,7 +29,7 @@ public class HeroTest {
         assertEquals(100, hero.getHitPoints()); // 80 + (1 * 20) = 100
         assertEquals(11, hero.getAttack());     // 8 + (1 * 3) = 11
         assertEquals(8, hero.getDefense());     // 6 + (1 * 2) = 8
-        assertNotNull(hero.getEquipement());
+        assertNotNull(hero.getEquipment());
     }
 
     @Test

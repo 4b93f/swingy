@@ -1,7 +1,7 @@
-package com.swingy.Model;
-import com.swingy.Model.Artefact.Artefact;
+package com.swingy.model;
+import com.swingy.model.artefact.Artefact;
 
-public class Equipement {
+public class Equipment {
 	private Artefact weapon;
 	private Artefact armor;
 	private Artefact helmet;
@@ -18,5 +18,5 @@ public class Equipement {
 
 	public void setHelmet(Artefact helmet) { this.helmet = helmet; }
 
-	public String toString() { return "Equipement [weapon=" + weapon + ", armor=" + armor + ", helmet=" + helmet + "]"; }
+	public String toString() { return "Equipment [weapon=" + weapon + ", armor=" + armor + ", helmet=" + helmet + "]"; }
 }

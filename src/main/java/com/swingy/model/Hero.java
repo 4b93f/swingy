@@ -1,16 +1,35 @@
-package com.swingy.Model;
+package com.swingy.model;
 
 import java.util.Random;
+import com.swingy.model.artefact.Artefact;
+import jakarta.validation.constraints.*;
 
 public class Hero {
+	@NotBlank
+	@Size(min = 2, max = 20)
 	private String heroName;
+
+	@NotBlank
+	@Pattern(regexp = "(?i)warrior|mage|rogue|tank", message = "must be Warrior, Mage, Rogue or Tank")
 	private String heroClass;
+
+	@Min(1)
 	private int level;
+
+	@Min(0)
 	private int experience;
+
+	@Min(1)
 	private int hitPoints;
+
+	@Min(1)
 	private int attack;
+
+	@Min(1)
 	private int defense;
-	private Equipement equipement;
+
+	private Equipment equipment;
+	private int maxHitPoints;
 
 	private Hero(HeroBuilder builder) {
 		this.heroName = builder.heroName;
@@ -18,9 +37,10 @@ public class Hero {
 		this.level = builder.level;
 		this.experience = builder.experience;
 		this.hitPoints = builder.hitPoints;
+		this.maxHitPoints = builder.hitPoints;
 		this.attack = builder.attack;
 		this.defense = builder.defense;
-		this.equipement = builder.equipement;
+		this.equipment = builder.equipment;
 	}
 
 	public static class HeroBuilder {
@@ -28,14 +48,12 @@ public class Hero {
 		private String heroClass = "";
 		private int level = 1;
 		private int experience = 0;
-		private int hitPoints = 100;
-		private int attack = 10;
-		private int defense = 10;
-		private Equipement equipement = new Equipement();
+		private int hitPoints = -1;
+		private int attack = -1;
+		private int defense = -1;
+		private Equipment equipment = new Equipment();
 
 		public HeroBuilder() {}
-
-		public HeroBuilder(String heroName) { this.heroName = heroName; }
 
 		public HeroBuilder setHeroName(String heroName) { this.heroName = heroName; return this; }
 
@@ -52,15 +70,9 @@ public class Hero {
 		public HeroBuilder setDefense(int defense) { this.defense = defense; return this; }
 
 		public Hero build() {
-			if (hitPoints == 100) {
-				hitPoints = calculateBaseHitPoints(level, heroClass);
-			}
-			if (attack == 10) {
-				attack = calculateBaseAttack(level, heroClass);
-			}
-			if (defense == 10) {
-				defense = calculateBaseDefense(level, heroClass);
-			}
+			if (hitPoints == -1) hitPoints = calculateBaseHitPoints(level, heroClass);
+			if (attack   == -1) attack    = calculateBaseAttack(level, heroClass);
+			if (defense  == -1) defense   = calculateBaseDefense(level, heroClass);
 			return new Hero(this);
 		}
 
@@ -74,25 +86,11 @@ public class Hero {
 		}
 
 		private int calculateBaseAttack(int level, String heroClass) {
-			int baseAtk = 8 + (level * 3);
-			return switch (heroClass.toLowerCase()) {
-				case "warrior" -> (int)(baseAtk * 1.1);
-				case "rogue" -> (int)(baseAtk * 1.2);
-				case "mage" -> (int)(baseAtk * 1.15);
-				case "tank" -> (int)(baseAtk * 0.9);
-				default -> baseAtk;
-			};
+			return 8 + (level * 3);
 		}
 
 		private int calculateBaseDefense(int level, String heroClass) {
-			int baseDef = 6 + (level * 2);
-			return switch (heroClass.toLowerCase()) {
-				case "tank" -> (int)(baseDef * 1.3);
-				case "warrior" -> (int)(baseDef * 1.1);
-				case "rogue" -> (int)(baseDef * 0.8);
-				case "mage" -> (int)(baseDef * 0.9);
-				default -> baseDef;
-			};
+			return 6 + (level * 2);
 		}
 	}
 
@@ -120,30 +118,52 @@ public class Hero {
 
 	public void setDefense(int defense) { this.defense = defense; }
 
-	public Equipement getEquipement() { return equipement; }
+	public Equipment getEquipment() { return equipment; }
 
-	public boolean fightEnemy(Enemy enemy) {
-		int heroHP = getTotalHitPoints();
-		int enemyHP = enemy.getHitPoints();
-		
-		heroHP = (int)(heroHP * getClassHPMultiplier());
-		
-		while (heroHP > 0 && enemyHP > 0) {
-			int heroAttack = (int)(getTotalAttack() * getClassAttackMultiplier());
-			int heroDefense = (int)(getTotalDefense() * getClassDefenseMultiplier());
-			
-			int heroDamage = calculateDamage(heroAttack, enemy.getDefense(), getClassCritChance());
-			enemyHP -= heroDamage;
-			
-			if (enemyHP <= 0) {
-				return true;
-			}
-			
-			int enemyDamage = calculateDamage(enemy.getAttack(), heroDefense, 10);
+	public BattleResult fightEnemyDetailed(Enemy enemy) {
+		BattleResult result = new BattleResult();
+		int startHP = getTotalHitPoints();
+		int heroHP  = startHP;
+
+		while (heroHP > 0 && enemy.getHitPoints() > 0) {
+			result = heroAttack(heroName, enemy, result, heroHP);
+			if (enemy.getHitPoints() <= 0) break;
+
+			int enemyDamage = enemyAttack(enemy, result, heroHP);
 			heroHP -= enemyDamage;
 		}
-		
-		return heroHP > 0;
+
+		if (heroHP > 0) {
+			int damageTaken = startHP - heroHP;
+			setHitPoints(Math.max(1, hitPoints - damageTaken));
+		}
+
+		result.setHeroWon(heroHP > 0);
+		return result;
+	}
+
+	private BattleResult heroAttack(String heroName, Enemy enemy, BattleResult result, int heroHP) {
+		int heroAttack = (int)(getTotalAttack() * getClassAttackMultiplier());
+		DamageResult heroDamageResult = calculateDamageWithCrit(heroAttack, enemy.getDefense(), getClassCritChance());
+		int heroDamage = heroDamageResult.damage;
+		enemy.setHitPoints(enemy.getHitPoints() - heroDamage);
+		result.addTurn(heroName, enemy.getName(), heroDamage, heroDamageResult.isCritical, heroHP, Math.max(0, enemy.getHitPoints()));
+		return result;
+	}
+
+	private int enemyAttack(Enemy enemy, BattleResult result, int heroHP) {
+		int heroDefense = (int)(getTotalDefense() * getClassDefenseMultiplier());
+		DamageResult enemyDamageResult = calculateDamageWithCrit(enemy.getAttack(), heroDefense, 5);
+		int enemyDamage = enemyDamageResult.damage;
+		result.addTurn(enemy.getName(), this.heroName, enemyDamage, enemyDamageResult.isCritical,
+			Math.max(0, enemy.getHitPoints()),
+			Math.max(0, heroHP - enemyDamage));
+		return enemyDamage;
+	}
+
+
+	public boolean fightEnemy(Enemy enemy) {
+		return fightEnemyDetailed(enemy).isHeroWon();
 	}
 
 	private double getClassAttackMultiplier() {
@@ -166,13 +186,6 @@ public class Hero {
 		};
 	}
 
-	private double getClassHPMultiplier() {
-		return switch (heroClass.toLowerCase()) {
-			case "tank" -> 1.3;
-			default -> 1.0;
-		};
-	}
-
 	private int getClassCritChance() {
 		return switch (heroClass.toLowerCase()) {
 			case "warrior" -> 15;
@@ -183,16 +196,28 @@ public class Hero {
 		};
 	}
 
-	private int calculateDamage(int attackPower, int defensePower, int critChance) {
+	private static class DamageResult {
+		int damage;
+		boolean isCritical;
+		
+		DamageResult(int damage, boolean isCritical) {
+			this.damage = damage;
+			this.isCritical = isCritical;
+		}
+	}
+	
+	private DamageResult calculateDamageWithCrit(int attackPower, int defensePower, int critChance) {
 		Random random = new Random();
 		int baseDamage = Math.max(attackPower - defensePower, 1);
+		boolean isCrit = random.nextInt(100) < critChance;
 		
-		if (random.nextInt(100) < critChance) {
+		if (isCrit) {
 			baseDamage *= 2;
 		}
 
 		double variance = 0.9 + random.nextDouble() * 0.2;
-		return (int)(baseDamage * variance);
+		int finalDamage = Math.max((int)(baseDamage * variance), 1);
+		return new DamageResult(finalDamage, isCrit);
 	}
 
 	public int gainXpFromEnemy(Enemy enemy) {
@@ -203,48 +228,51 @@ public class Hero {
 
 	public boolean shouldLevelUp() { return this.experience >= getXPThreshold(this.level); }
 
+	// XP formula
 	private int getXPThreshold(int level) { return level * 1000 + (level - 1) * (level - 1) * 450; }
 
 	public void levelUp() {
 		this.experience -= getXPThreshold(this.level);
 		this.level++;
-		
-		this.hitPoints += 25;
-		this.attack += 3;
+		this.hitPoints    += 25;
+		this.maxHitPoints += 25;
+		this.attack  += 3;
 		this.defense += 2;
 	}
 
-	public void equipArtifact(com.swingy.Model.Artefact.Artefact artifact) {
+	public void restoreHp() { this.hitPoints = maxHitPoints; }
+
+	public void equipArtifact(Artefact artifact) {
 		String artifactType = artifact.getClass().getSimpleName();
 		switch (artifactType) {
 			case "Weapon":
-				this.equipement.setWeapon(artifact);
+				this.equipment.setWeapon(artifact);
 				break;
 			case "Armor":
-				this.equipement.setArmor(artifact);
+				this.equipment.setArmor(artifact);
 				break;
 			case "Helmet":
-				this.equipement.setHelmet(artifact);
+				this.equipment.setHelmet(artifact);
 				break;
 		}
 	}
 
 	public int getTotalAttack() {
-		int weaponBonus = equipement.getWeapon() != null ? equipement.getWeapon().getBonusAttack() : 0;
+		int weaponBonus = equipment.getWeapon() != null ? equipment.getWeapon().getBonusAttack() : 0;
 		return attack + weaponBonus;
 	}
 
 	public int getTotalDefense() {
-		int armorBonus = equipement.getArmor() != null ? equipement.getArmor().getBonusDefense() : 0;
+		int armorBonus = equipment.getArmor() != null ? equipment.getArmor().getBonusDefense() : 0;
 		return defense + armorBonus;
 	}
 
 	public int getTotalHitPoints() {
-		int helmetBonus = equipement.getHelmet() != null ? equipement.getHelmet().getBonusHitPoints() : 0;
+		int helmetBonus = equipment.getHelmet() != null ? equipment.getHelmet().getBonusHitPoints() : 0;
 		return hitPoints + helmetBonus;
 	}
 
 	public String toString() {
-		return "Hero [heroName=" + heroName + ", heroClass=" + heroClass + ", level=" + level + ", experience=" + experience + ", hitPoints=" + hitPoints + ", attack=" + attack + ", defense=" + defense + ", equipement=" + equipement + "]";
+		return "Hero [heroName=" + heroName + ", heroClass=" + heroClass + ", level=" + level + ", experience=" + experience + ", hitPoints=" + hitPoints + ", attack=" + attack + ", defense=" + defense + ", equipment=" + equipment + "]";
 	}
 }

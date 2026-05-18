@@ -1,4 +1,4 @@
-package com.swingy.Model;
+package com.swingy.model;
 
 public class Position {
     private int x;

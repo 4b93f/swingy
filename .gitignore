@@ -1,6 +1,9 @@
 # Compiled class files
 *.class
 
+# Game data
+heroes.txt
+
 # Log files
 *.log
 
@@ -61,3 +64,6 @@ Thumbs.db
 # Virtual machine crash logs
 hs_err_pid*
 replay_pid*
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md
