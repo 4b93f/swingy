@@ -14,10 +14,10 @@ mvn package -DskipTests
 
 ```bash
 # Console mode
-java -jar target/swingy-1.0-SNAPSHOT.jar console
+java -jar target/swingy.jar console
 
 # GUI mode
-java -jar target/swingy-1.0-SNAPSHOT.jar gui
+java -jar target/swingy.jar gui
 ```
 
 ## Gameplay
