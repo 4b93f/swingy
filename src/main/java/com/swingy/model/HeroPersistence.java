@@ -3,6 +3,10 @@ package com.swingy.model;
 import java.io.*;
 import java.util.*;
 import jakarta.validation.*;
+import com.swingy.model.artefact.Armor;
+import com.swingy.model.artefact.Artefact;
+import com.swingy.model.artefact.Helmet;
+import com.swingy.model.artefact.Weapon;
 
 public class HeroPersistence {
 
@@ -44,12 +48,23 @@ public class HeroPersistence {
             String.valueOf(h.getExperience()),
             String.valueOf(h.getHitPoints()),
             String.valueOf(h.getAttack()),
-            String.valueOf(h.getDefense())
+            String.valueOf(h.getDefense()),
+            artefactToField(h.getEquipment().getWeapon()),
+            artefactToField(h.getEquipment().getArmor()),
+            artefactToField(h.getEquipment().getHelmet())
         );
     }
 
+    private static String artefactToField(Artefact a) {
+        if (a == null) return "";
+        int bonus = a.getBonusAttack() != 0 ? a.getBonusAttack()
+                  : a.getBonusDefense() != 0 ? a.getBonusDefense()
+                  : a.getBonusHitPoints();
+        return a.getArtefactName() + ":" + bonus;
+    }
+
     private static Hero fromLine(String line) {
-        String[] p = line.split(",");
+        String[] p = line.split(",", -1);
         if (p.length < 7) return null;
         try {
             Hero hero = new Hero.HeroBuilder()
@@ -61,6 +76,12 @@ public class HeroPersistence {
                 .setAttack(Integer.parseInt(p[5].trim()))
                 .setDefense(Integer.parseInt(p[6].trim()))
                 .build();
+            if (p.length > 7 && !p[7].trim().isEmpty())
+                parseArtefact(p[7].trim(), "weapon").ifPresent(hero::equipArtifact);
+            if (p.length > 8 && !p[8].trim().isEmpty())
+                parseArtefact(p[8].trim(), "armor").ifPresent(hero::equipArtifact);
+            if (p.length > 9 && !p[9].trim().isEmpty())
+                parseArtefact(p[9].trim(), "helmet").ifPresent(hero::equipArtifact);
             Set<ConstraintViolation<Hero>> violations = VALIDATOR.validate(hero);
             if (!violations.isEmpty()) {
                 System.err.println("Skipping invalid hero \"" + p[0] + "\": "
@@ -70,6 +91,23 @@ public class HeroPersistence {
             return hero;
         } catch (NumberFormatException e) {
             return null;
+        }
+    }
+
+    private static java.util.Optional<Artefact> parseArtefact(String field, String slot) {
+        int colon = field.lastIndexOf(':');
+        if (colon < 1) return java.util.Optional.empty();
+        try {
+            String name  = field.substring(0, colon);
+            int    bonus = Integer.parseInt(field.substring(colon + 1));
+            Artefact a = switch (slot) {
+                case "weapon" -> new Weapon(name, bonus);
+                case "armor"  -> new Armor(name, bonus);
+                default       -> new Helmet(name, bonus);
+            };
+            return java.util.Optional.of(a);
+        } catch (NumberFormatException e) {
+            return java.util.Optional.empty();
         }
     }
 }
